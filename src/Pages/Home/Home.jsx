@@ -1,15 +1,11 @@
-"use client";
-import Image from "next/image";
-
 import React, { useState, useEffect, useRef } from "react";
-import "./Home.css";
-import chatLogo from "../../public/chat.png";
-import AgeVerification from "../components/AgeVerification/AgeVerification";
-import VoiceRecorder from "../components/VoiceRecorder/VoiceRecorder";
+import "../Pages/Home.css";
+import chatLogo from "../assets/chat.png";
+import AgeVerification from "../assets/components/AgeVerification";
 import BounceLoader from "react-spinners/BounceLoader";
-import LinkPreview from "../components/LinkPreview/LinkPreview";
-// import EmojiPicker from "../components/EmojiPicker/Emoji";
-import GifPicker from "../components/GIFPicker/GIF";
+import LinkPreview from "../assets/components/LinkPreview/LinkPreview";
+import EmojiPicker from "../assets/components/EmojiPicker/Emoji";
+import GifPicker from "../assets/components/GIFPicker/GIF";
 import SyncLoader from "react-spinners/SyncLoader";
 import { io } from "socket.io-client";
 import { IoImageOutline } from "react-icons/io5";
@@ -19,9 +15,10 @@ import { ClipLoader } from "react-spinners";
 import { IoMoon } from "react-icons/io5";
 import { MdOutlineLightMode } from "react-icons/md";
 import { IoMdSend } from "react-icons/io";
+import VoiceRecorder from "../assets/components/VoiceRecorder/VoiceRecorder";
 
 // Backend connection configuration Sets up Socket.io connection to the backend server
-const BACKEND_URL =  "http://localhost:9000";
+const BACKEND_URL = import.meta.env.VITE_REACT_BACKEND_URL;
 const socket = io(BACKEND_URL);
 
 //  State Management Core application state variables for chat functionality
@@ -387,14 +384,14 @@ const Home = () => {
             formatMessageWithLinks(message.text)}
 
           {message.image && (
-            <Image
+            <img
               src={message.image}
               alt="Shared"
               className="w-32 h-auto rounded-md"
             />
           )}
           {message.gif && (
-            <Image
+            <img
               src={message.gif}
               alt="GIF"
               className="w-48 h-auto rounded-md"
@@ -680,7 +677,7 @@ const Home = () => {
       <header className="flex items-center justify-between p-4 bg-gray-800 dark:bg-gray-800 static">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8">
-            <Image src={chatLogo} alt="Chat Logo" />
+            <img src={chatLogo} alt="Chat Logo" />
           </div>
           <h1 className="text-xl font-bold">Chat App</h1>
         </div>
@@ -780,11 +777,11 @@ const Home = () => {
               </label>
 
               <GifPicker onGifSelect={handleGifSelect} />
-              {/* <EmojiPicker
+              <EmojiPicker
                 onEmojiSelect={onEmojiSelect}
                 showPicker={showEmojiPicker}
                 togglePicker={() => setShowEmojiPicker(!showEmojiPicker)}
-              /> */}
+              />
             </div>
             <div>
               <VoiceRecorder onSendVoice={sendVoiceMessage} />
@@ -797,7 +794,7 @@ const Home = () => {
                     <ClipLoader color="#d3cfcf" size={17} speedMultiplier={1} />
                   </div>
                 )}
-                <Image
+                <img
                   src={selectedImage}
                   alt="Preview"
                   className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-md border"

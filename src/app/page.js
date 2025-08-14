@@ -1,9 +1,8 @@
 "use client";
-import Image from "next/image";
 
 import React, { useState, useEffect, useRef } from "react";
 import "./Home.css";
-import chatLogo from "../../public/chat.png";
+import "../styles/theme-toggle.css";
 import AgeVerification from "../components/AgeVerification/AgeVerification";
 import VoiceRecorder from "../components/VoiceRecorder/VoiceRecorder";
 import BounceLoader from "react-spinners/BounceLoader";
@@ -21,7 +20,7 @@ import { MdOutlineLightMode } from "react-icons/md";
 import { IoMdSend } from "react-icons/io";
 
 // Backend connection configuration Sets up Socket.io connection to the backend server
-const BACKEND_URL =  "http://localhost:9000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_APP_BACKEND_URL;
 const socket = io(BACKEND_URL);
 
 //  State Management Core application state variables for chat functionality
@@ -34,6 +33,7 @@ const Home = () => {
   const [darkMode, setDarkMode] = useState(true);
   const [isSkipConfirm, setIsSkipConfirm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [useSystemTheme, setUseSystemTheme] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
   const [userId] = useState(() => Math.random().toString(36).substring(2, 9));
@@ -42,6 +42,40 @@ const Home = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
+
+  // Initialize theme based on system preference and localStorage
+  useEffect(() => {
+    // Check if the user has a saved preference
+    const savedThemePreference = localStorage.getItem('darkMode');
+    const savedUseSystemTheme = localStorage.getItem('useSystemTheme');
+    
+    if (savedUseSystemTheme !== null) {
+      setUseSystemTheme(savedUseSystemTheme === 'true');
+    }
+    
+    if (savedUseSystemTheme === 'false' && savedThemePreference !== null) {
+      // If user has disabled system theme and has a preference, use that
+      setDarkMode(savedThemePreference === 'true');
+    } else {
+      // Otherwise check system preference
+      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setDarkMode(prefersDarkMode);
+      
+      // Add listener for system theme changes
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e) => {
+        if (useSystemTheme) {
+          setDarkMode(e.matches);
+        }
+      };
+      
+      // Add listener
+      mediaQuery.addEventListener('change', handleChange);
+      
+      // Cleanup
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [useSystemTheme]);
 
   // Socket.io Event Handlers Setup listeners for real-time communication events
   useEffect(() => {
@@ -265,7 +299,41 @@ const Home = () => {
   };
   // Toggle Dark Mode
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    // Add a rotate class to trigger animation
+    const button = document.querySelector('.theme-toggle-button');
+    if (button) {
+      button.classList.add('rotate');
+      // Remove the class after the animation completes
+      setTimeout(() => {
+        button.classList.remove('rotate');
+      }, 700);
+    }
+    
+    // If following system theme, toggle that off and set a manual preference
+    if (useSystemTheme) {
+      setUseSystemTheme(false);
+      localStorage.setItem('useSystemTheme', 'false');
+      // Set the theme opposite to the current one
+      setDarkMode(!darkMode);
+      localStorage.setItem('darkMode', (!darkMode).toString());
+    } else {
+      // Already using manual preference, just toggle it
+      setDarkMode(!darkMode);
+      localStorage.setItem('darkMode', (!darkMode).toString());
+    }
+  };
+  
+  // Toggle whether to use system theme
+  const toggleUseSystemTheme = () => {
+    if (!useSystemTheme) {
+      // Enable system theme following
+      setUseSystemTheme(true);
+      localStorage.setItem('useSystemTheme', 'true');
+      
+      // Apply system preference immediately
+      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setDarkMode(prefersDarkMode);
+    }
   };
 
   // Check if a string is a valid URL
@@ -293,7 +361,7 @@ const Home = () => {
               href={part}
               target="_blank"
               rel="noopener noreferrer"
-              className="message-link"
+              className={`message-link ${darkMode ? "text-blue-700" : "text-blue-800"}`}
             >
               {part}
             </a>
@@ -371,10 +439,10 @@ const Home = () => {
         className={`message ${
           message.me
             ? message.text
-              ? "my-message bg-[#1E2939] text-white self-end"
+              ? `my-message ${darkMode ? "bg-[#1E2939] text-white" : "bg-white text-gray-800"} self-end`
               : "self-end"
             : message.text
-              ? "other-message bg-gray-700 text-white self-start"
+              ? `other-message ${darkMode ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-800"} self-start`
               : "self-start"
         }`}
         onContextMenu={handleContextMenu}
@@ -387,14 +455,14 @@ const Home = () => {
             formatMessageWithLinks(message.text)}
 
           {message.image && (
-            <Image
+            <img
               src={message.image}
               alt="Shared"
-              className="w-32 h-auto rounded-md"
+              className={`w-32 h-auto rounded-md ${darkMode ? 'border border-gray-800' : 'border border-gray-800'}`}
             />
           )}
           {message.gif && (
-            <Image
+            <img
               src={message.gif}
               alt="GIF"
               className="w-48 h-auto rounded-md"
@@ -456,7 +524,7 @@ const Home = () => {
             </div>
           )}
 
-          <span className="timestamp">{message.timestamp}</span>
+          <span className={`timestamp ${darkMode ? "text-gray-100" : "text-gray-800"}`}>{message.timestamp}</span>
         </div>
 
         {/* Updated Reactions display */}
@@ -674,32 +742,41 @@ const Home = () => {
   return (
     <div
       className={`${
-        darkMode ? "bg-gray-900 text-white" : "bg-gray-500 text-white"
+        darkMode ? "bg-gray-900 text-white" : "bg-gray-300 text-white"
       } h-screen flex flex-col`}
     >
-      <header className="flex items-center justify-between p-4 bg-gray-800 dark:bg-gray-800 static">
+      <header className={`sticky ${darkMode ? "bg-gray-800" : "bg-gray-300 text-gray-800 shadow shadow-zinc-500"} flex items-center justify-between p-4  static`} >
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8">
-            <Image src={chatLogo} alt="Chat Logo" />
+            <img src="/chat.png" alt="Chat Logo" />
           </div>
           <h1 className="text-xl font-bold">Chat App</h1>
         </div>
-        <button
-          onClick={toggleDarkMode}
-          className="rounded-full p-2 bg-gray-700 dark:bg-gray-800 text-white dark:text-black hover:cursor-pointer"
-          data-tooltip-id="darkmode-tooltip"
-        >
-          {darkMode ? (
-            <IoMoon className="text-white" />
-          ) : (
-            <MdOutlineLightMode className="text-white" />
-          )}
-          <Tooltip
-            id="darkmode-tooltip"
-            place="bottom"
-            content="Toggle Dark / Light Mode"
-          />
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={toggleDarkMode}
+            className="rounded-full p-2 hover:cursor-pointer theme-toggle-button"
+            data-tooltip-id="darkmode-tooltip"
+          >
+            <div className="relative">
+              <IoMoon className={`text-white absolute theme-toggle-icon ${darkMode ? 'opacity-100' : 'opacity-0'}`} />
+              <MdOutlineLightMode className={`text-gray-900 theme-toggle-icon ${darkMode ? 'opacity-0' : 'opacity-100'}`} />
+            </div>
+            
+          </button>
+          
+          <button
+            onClick={toggleUseSystemTheme}
+            className={`text-xs px-2 py-1 rounded cursor-pointer ${
+              useSystemTheme 
+                ? (darkMode ? 'bg-gray-700 text-white' : 'bg-gray-400 text-gray-800')
+                : (darkMode ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-600')
+            }`}
+          >
+            {useSystemTheme ? "System" : "Manual"}
+            
+          </button>
+        </div>
       </header>
 
       <main className="flex-grow p-4 overflow-y-auto">
@@ -712,7 +789,7 @@ const Home = () => {
             <BounceLoader color="#364153" size={45} speedMultiplier={1.5} />
             <p
               className={`text-center text-lg ${
-                darkMode ? "text-white" : "text-black"
+                darkMode ? "text-white" : "text-gray-800"
               }`}
             >
               {partnerDisconnected
@@ -730,7 +807,7 @@ const Home = () => {
       </main>
 
       {/* Footer/Input Area */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-gray-800 dark:bg-gray-800 p-2 md:p-4">
+      <footer className={`fixed bottom-0 left-0 right-0 p-2 md:p-4 ${darkMode ? "bg-gray-800" : "bg-gray-300 shadow shadow-zinc-500 inset-shadow-sm"}`}>
         <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-2">
           <button
             onClick={handleSkipUser}
@@ -764,11 +841,11 @@ const Home = () => {
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
                 disabled={!connected}
-                className="w-full px-3 pl-10 py-2 rounded text-white focus:outline-none bg-gray-700 dark:bg-gray-700 text-sm md:text-base"
+                className={`w-full px-3 pl-10 py-2 rounded focus:outline-none text-sm md:text-base ${darkMode ? "bg-gray-700 border border-gray-400" : "bg-gray-300 text-gray-800 border border-gray-700"}`}
               />
               <label
                 htmlFor="fileInput"
-                className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer hover:text-gray-400 transition-colors"
+                className={`absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer transition-colors ${darkMode ? "text-gray-300 hover:text-gray-400" : "text-gray-500 hover:text-gray-600"}`}
                 data-tooltip-id="attach-tooltip"
               >
                 <IoImageOutline size={22} />
@@ -797,7 +874,7 @@ const Home = () => {
                     <ClipLoader color="#d3cfcf" size={17} speedMultiplier={1} />
                   </div>
                 )}
-                <Image
+                <img
                   src={selectedImage}
                   alt="Preview"
                   className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-md border"

@@ -10,18 +10,24 @@ const GifPicker = ({ onGifSelect }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
 
-  const GIPHY_API_KEY = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
+  // Use a hardcoded API key for demo purposes or get it from environment variable
+  const GIPHY_API_KEY = process.env.NEXT_PUBLIC_GIPHY_API_KEY || "GlVGYHkr3WSBnllca54iNt0yFbjz7L65"; // Demo API key
   const gf = new GiphyFetch(GIPHY_API_KEY);
 
   // Function to fetch GIFs based on search term
   const fetchGifs = async (offset) => {
     try {
-      return searchTerm
-        ? gf.search(searchTerm, { offset, limit: 10 })
-        : gf.trending({ offset, limit: 10 });
+      console.log("Fetching GIFs with API key:", GIPHY_API_KEY);
+      const result = searchTerm
+        ? await gf.search(searchTerm, { offset, limit: 10 })
+        : await gf.trending({ offset, limit: 10 });
+      
+      console.log("GIFs fetched:", result.data.length);
+      setError(null);
+      return result;
     } catch (err) {
       console.error('Error fetching GIFs:', err);
-      setError('Failed to load GIFs');
+      setError('Failed to load GIFs. Please check your API key.');
       return { data: [] }; // Return empty data on error
     }
   };
@@ -47,7 +53,7 @@ const GifPicker = ({ onGifSelect }) => {
       {/* GIF Button */}
       <button
         onClick={() => setShowPicker((prev) => !prev)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer hover:text-gray-400 transition-colors flex items-center justify-center h-[35px]"
+        className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-600 transition-colors flex items-center justify-center h-[35px]"
         data-tooltip-id="gif-tooltip"
       >
         <HiOutlineGif size={22} className="relative -top-[5px]" />

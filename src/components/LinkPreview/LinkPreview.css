@@ -21,7 +21,8 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .link-preview {
-    background: #2a2a2a;
+    background: #6b6969;
+    ;
     border-color: rgba(255, 255, 255, 0.1);
   }
 }
@@ -54,7 +55,7 @@
 
 .site-domain {
   font-size: 13px;
-  color: #666;
+  color: #bcb8b8;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -67,6 +68,7 @@
   font-size: 15px;
   font-weight: 600;
   line-height: 1.3;
+  color: #ffffff;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -76,7 +78,7 @@
 .preview-description {
   margin: 0;
   font-size: 13px;
-  color: #666;
+  color: #a7a5a5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

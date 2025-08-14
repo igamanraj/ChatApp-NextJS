@@ -1,0 +1,13 @@
+.theme-toggle-button {
+  transition: transform 0.7s ease;
+}
+
+.theme-toggle-button:hover {
+  transform: rotate(25deg);
+}
+
+
+
+.theme-toggle-icon {
+  transition: opacity 0.3s ease;
+}
